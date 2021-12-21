@@ -4,8 +4,7 @@ import nextstep.subway.station.domain.Station;
 import nextstep.subway.station.domain.StationRepository;
 import nextstep.subway.station.dto.StationRequest;
 import nextstep.subway.station.dto.StationResponse;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,10 +26,11 @@ public class StationService {
     }
 
     @Transactional(readOnly = true)
-    public List<StationResponse> findAllStations(Pageable pageable) {
-        Page<Station> stations = stationRepository.findAll(pageable);
+    public List<StationResponse> findAllStations(long id, int pageSize) {
+        PageRequest pageRequest = PageRequest.of(0, pageSize);
+        List<Station> stations = stationRepository.findAll(id, pageRequest);
 
-        return stations.toList()
+        return stations
                 .stream()
                 .map(StationResponse::of)
                 .collect(Collectors.toList());
