@@ -1,9 +1,11 @@
 package nextstep.subway.station.application;
 
+import nextstep.subway.map.application.PathCacheEvictEvent;
 import nextstep.subway.station.domain.Station;
 import nextstep.subway.station.domain.StationRepository;
 import nextstep.subway.station.dto.StationRequest;
 import nextstep.subway.station.dto.StationResponse;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,14 +16,18 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 public class StationService {
-    private StationRepository stationRepository;
 
-    public StationService(StationRepository stationRepository) {
+    private final StationRepository stationRepository;
+    private final ApplicationEventPublisher eventPublisher;
+
+    public StationService(StationRepository stationRepository, ApplicationEventPublisher eventPublisher) {
         this.stationRepository = stationRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     public StationResponse saveStation(StationRequest stationRequest) {
         Station persistStation = stationRepository.save(stationRequest.toStation());
+        eventPublisher.publishEvent(new PathCacheEvictEvent());
         return StationResponse.of(persistStation);
     }
 
@@ -38,6 +44,7 @@ public class StationService {
 
     public void deleteStationById(Long id) {
         stationRepository.deleteById(id);
+        eventPublisher.publishEvent(new PathCacheEvictEvent());
     }
 
     @Transactional(readOnly = true)
